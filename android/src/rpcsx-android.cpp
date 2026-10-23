@@ -4,6 +4,9 @@
 #include "Emu/Audio/Null/NullAudioBackend.h"
 #include "Emu/Cell/PPUAnalyser.h"
 #include "Emu/Cell/SPURecompiler.h"
+#ifdef ARCH_ARM64
+#include "Emu/CPU/Backends/AArch64/AArch64Common.h"
+#endif
 #include "Emu/IdManager.h"
 #include "Emu/Io/KeyboardHandler.h"
 #include "Emu/Io/Null/NullKeyboardHandler.h"
@@ -1815,7 +1818,15 @@ extern "C" bool _rpcsx_initialize(std::string_view rootDir,
   g_cfg_input.player1.device.from_string("Virtual");
   g_cfg_input.save("", g_cfg_input_configs.default_config);
 
+#ifdef ARCH_ARM64
+  // Target the oldest core type present instead of the ARMv8.0 cortex-a34
+  // baseline, so JIT code can use LSE atomics and newer ISA extensions.
+  std::string llvm_cpu = aarch64::get_cpu_name();
+  std::transform(llvm_cpu.begin(), llvm_cpu.end(), llvm_cpu.begin(), ::tolower);
+  g_cfg.core.llvm_cpu.from_string(llvm_cpu.empty() ? "cortex-a34" : llvm_cpu);
+#else
   g_cfg.core.llvm_cpu.from_string("cortex-a34");
+#endif
 
   Emulator::SaveSettings(g_cfg.to_string(), Emu.GetTitleID());
   return true;

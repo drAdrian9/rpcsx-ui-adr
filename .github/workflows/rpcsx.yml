@@ -11,6 +11,7 @@ on:
 
 jobs:
   build-linux:
+    if: github.repository == 'RPCSX/rpcsx'
     runs-on: ubuntu-latest
     steps:
 
@@ -47,22 +48,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - abi: arm64-v8a
-            arch: armv8-a
-          - abi: arm64-v8a
-            arch: armv8.1-a
-          - abi: arm64-v8a
-            arch: armv8.2-a
-          - abi: arm64-v8a
-            arch: armv8.4-a
-          - abi: arm64-v8a
-            arch: armv8.5-a
-          - abi: arm64-v8a
-            arch: armv9-a
+          # Fork: only build the variant used on the target device (Dimensity 8500 / Cortex-A725).
           - abi: arm64-v8a
             arch: armv9.1-a
-          - abi: x86_64
-            arch: x86-64
 
     env:
       NDK_VERSION: "29.0.13113456"
@@ -117,6 +105,13 @@ jobs:
         $ANDROID_SDK_ROOT/cmake/${{ env.CMAKE_VERSION }}/bin/cmake --build build
         $ANDROID_SDK_ROOT/ndk/${{ env.NDK_VERSION }}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip build/librpcsx-android.so
         mv build/librpcsx-android.so librpcsx-android-${{ matrix.abi }}-${{ matrix.arch }}.so
+
+    - name: Upload core
+      uses: actions/upload-artifact@v4
+      with:
+        name: librpcsx-android-${{ matrix.abi }}-${{ matrix.arch }}
+        path: librpcsx-android-${{ matrix.abi }}-${{ matrix.arch }}.so
+        if-no-files-found: error
 
     - name: Deploy build
       uses: softprops/action-gh-release@v2
