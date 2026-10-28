@@ -451,7 +451,14 @@ namespace vk
 
 		for (const auto& res : configuration.texture_raw_data)
 		{
-			upload_simple_texture(dev, cmd, upload_heap, storage_key++, res->w, res->h, 1, false, false, res->get_data(), -1);
+			// Keep keys aligned with image_resource_id even when a file is missing.
+			const u64 key = storage_key++;
+			if (!res->get_data() || !res->w || !res->h)
+			{
+				continue;
+			}
+
+			upload_simple_texture(dev, cmd, upload_heap, key, res->w, res->h, 1, false, false, res->get_data(), -1);
 		}
 
 		configuration.free_resources();
@@ -524,6 +531,13 @@ namespace vk
 
 	vk::image_view* ui_overlay_renderer::find_temp_image(rsx::overlays::image_info_base* desc, vk::command_buffer& cmd, vk::data_heap& upload_heap, u32 owner_uid)
 	{
+		// Missing image files (e.g. Icons/ui/spinner-24.png on Android) leave an empty descriptor.
+		// Uploading a 0x0 texture is invalid, so draw the element untextured instead.
+		if (!desc || !desc->get_data() || !desc->w || !desc->h)
+		{
+			return nullptr;
+		}
+
 		const bool dirty = std::exchange(desc->dirty, false);
 		const u64 key = reinterpret_cast<u64>(desc);
 
