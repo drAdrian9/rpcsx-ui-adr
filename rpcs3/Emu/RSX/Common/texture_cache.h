@@ -2553,14 +2553,14 @@ namespace rsx
 				if ((src_h + src.offset_y) > src.height) [[unlikely]]
 				{
 					// TODO: Special case that needs wrapping around (custom blit)
-					rsx_log.error("Transfer cropped in Y, src_h=%d, offset_y=%d, block_h=%d", src_h, src.offset_y, src.height);
+					rsx_log.trace("Transfer cropped in Y, src_h=%d, offset_y=%d, block_h=%d", src_h, src.offset_y, src.height);
 					src_h = src.height - src.offset_y;
 				}
 
 				if ((src_w + src.offset_x) > src.width) [[unlikely]]
 				{
 					// TODO: Special case that needs wrapping around (custom blit)
-					rsx_log.error("Transfer cropped in X, src_w=%d, offset_x=%d, block_w=%d", src_w, src.offset_x, src.width);
+					rsx_log.trace("Transfer cropped in X, src_w=%d, offset_x=%d, block_w=%d", src_w, src.offset_x, src.width);
 					src_w = src.width - src.offset_x;
 				}
 			}
